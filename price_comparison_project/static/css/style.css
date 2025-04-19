@@ -1,0 +1,64 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.progress {
+    height: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.progress-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Price styling */
+.text-success {
+    color: #28a745 !important;
+}
+
+/* Custom button styling */
+.btn-primary {
+    background-color: #4361ee;
+    border-color: #4361ee;
+}
+
+.btn-primary:hover {
+    background-color: #3a56d4;
+    border-color: #3a56d4;
+}
+
+/* Custom card header colors */
+.bg-primary {
+    background-color: #4361ee !important;
+}
+
+.bg-success {
+    background-color: #2ecc71 !important;
+}
+
+.bg-info {
+    background-color: #3498db !important;
+}
+
+.bg-warning {
+    background-color: #f39c12 !important;
+    color: white;
+}

@@ -1,0 +1,70 @@
+2025-04-19 23:58:35,456 - __main__ - INFO - Starting Flask application on http://127.0.0.1:5000
+2025-04-19 23:58:35,463 - werkzeug - WARNING -  * Debugger is active!
+2025-04-19 23:58:35,468 - werkzeug - INFO -  * Debugger PIN: 129-502-399
+2025-04-19 23:59:21,856 - werkzeug - INFO -  * Detected change in 'C:\\Users\\suraj_ghosh\\Desktop\\price_comparison_project\\test_fixed_flipkar.py', reloading
+2025-04-19 23:59:24,015 - __main__ - INFO - Starting Flask application on http://127.0.0.1:5000
+2025-04-19 23:59:24,020 - werkzeug - WARNING -  * Debugger is active!
+2025-04-19 23:59:24,025 - werkzeug - INFO -  * Debugger PIN: 129-502-399
+2025-04-20 00:16:56,937 - __main__ - INFO - Starting Flask application on http://127.0.0.1:5000
+2025-04-20 00:16:57,497 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-20 00:16:57,506 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-20 00:16:57,512 - werkzeug - INFO -  * Restarting with stat
+2025-04-20 00:17:00,277 - __main__ - INFO - Starting Flask application on http://127.0.0.1:5000
+2025-04-20 00:17:00,281 - werkzeug - WARNING -  * Debugger is active!
+2025-04-20 00:17:00,283 - werkzeug - INFO -  * Debugger PIN: 129-502-399
+2025-04-20 00:17:12,192 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:17:12] "GET / HTTP/1.1" 200 -
+2025-04-20 00:17:12,259 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:17:12] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-04-20 00:17:17,384 - __main__ - INFO - Searching for: iphone 15
+2025-04-20 00:17:22,447 - __main__ - INFO - Found 10 products on Amazon
+2025-04-20 00:17:43,834 - __main__ - INFO - Found 7 products on Flipkart
+2025-04-20 00:17:43,845 - __main__ - INFO - Saved price history for Flipkart iphone 15 Pro Max from flipkart
+2025-04-20 00:17:43,845 - __main__ - INFO - Platform reliability analysis completed
+2025-04-20 00:17:43,846 - __main__ - INFO - Found 2 historical price points
+2025-04-20 00:17:43,848 - __main__ - ERROR - Error generating forecast: 'timestamp'
+2025-04-20 00:17:43,961 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:17:43] "POST /search HTTP/1.1" 200 -
+2025-04-20 00:17:43,998 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:17:43] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-04-20 00:18:33,510 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:18:33] "GET / HTTP/1.1" 200 -
+2025-04-20 00:18:33,549 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:18:33] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-04-20 00:18:37,103 - __main__ - INFO - Searching for: lg washing machine
+2025-04-20 00:18:42,178 - __main__ - INFO - Found 10 products on Amazon
+2025-04-20 00:18:56,508 - __main__ - INFO - Found 7 products on Flipkart
+2025-04-20 00:18:56,509 - __main__ - INFO - Saved price history for LG 7 Kg 5 Star Wind Jet Dry Semi-Automatic Top Loading Washing Machine (P7020NGAZ, Dark Gray, Rat Away Feature) from amazon
+2025-04-20 00:18:56,510 - __main__ - INFO - Platform reliability analysis completed
+2025-04-20 00:18:56,512 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:18:56] "POST /search HTTP/1.1" 200 -
+2025-04-20 00:18:56,540 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:18:56] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-04-20 00:19:08,325 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:19:08] "GET / HTTP/1.1" 200 -
+2025-04-20 00:19:08,342 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:19:08] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-04-20 00:19:49,820 - __main__ - INFO - Searching for: realme buds 5
+2025-04-20 00:19:58,060 - __main__ - INFO - Found 10 products on Amazon
+2025-04-20 00:20:12,063 - __main__ - INFO - Searching for: realme buds 5
+2025-04-20 00:20:16,437 - __main__ - INFO - Found 7 products on Flipkart
+2025-04-20 00:20:16,454 - __main__ - INFO - Saved price history for realme Buds Wireless 5 ANC in Ear Bluetooth Headphones,50dB ANC, 13.6mm Dynamic Bass Driver,360° Spatial Audio,45ms Low Latency,Upto 38hrs Playback,IP55 Rating,Dual Device Connection (Midnight Black) from flipkart
+2025-04-20 00:20:16,472 - __main__ - INFO - Platform reliability analysis completed
+2025-04-20 00:20:16,483 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:20:16] "POST /search HTTP/1.1" 200 -
+2025-04-20 00:20:18,259 - __main__ - INFO - Found 10 products on Amazon
+2025-04-20 00:20:46,562 - __main__ - INFO - Found 7 products on Flipkart
+2025-04-20 00:20:46,882 - __main__ - INFO - Saved price history for realme Buds Wireless 5 ANC in Ear Bluetooth Headphones,50dB ANC, 13.6mm Dynamic Bass Driver,360° Spatial Audio,45ms Low Latency,Upto 38hrs Playback,IP55 Rating,Dual Device Connection (Midnight Black) from flipkart
+2025-04-20 00:20:46,899 - __main__ - INFO - Platform reliability analysis completed
+2025-04-20 00:20:46,907 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:20:46] "POST /search HTTP/1.1" 200 -
+2025-04-20 00:20:55,764 - werkzeug - INFO - 127.0.0.1 - - [20/Apr/2025 00:20:55] "[36mGET /static/css/style.css HTTP/1.1[0m" 304 -
+2025-04-20 00:48:37,517 - werkzeug - INFO -  * Detected change in 'C:\\Users\\suraj_ghosh\\Desktop\\price_comparison_project\\test_fixed_flipkar.py', reloading
+2025-04-20 00:48:38,049 - werkzeug - INFO -  * Restarting with stat
+2025-04-20 00:48:41,053 - __main__ - INFO - Starting Flask application on http://127.0.0.1:5000
+2025-04-20 00:48:41,060 - werkzeug - WARNING -  * Debugger is active!
+2025-04-20 00:48:41,065 - werkzeug - INFO -  * Debugger PIN: 129-502-399
+2025-04-20 01:02:49,534 - werkzeug - INFO -  * Detected change in 'C:\\Users\\suraj_ghosh\\Desktop\\price_comparison_project\\scrapers\\amazon_scraper.py', reloading
+2025-04-20 01:02:50,047 - werkzeug - INFO -  * Restarting with stat
+2025-04-20 01:02:53,304 - __main__ - INFO - Starting Flask application on http://127.0.0.1:5000
+2025-04-20 01:02:53,310 - werkzeug - WARNING -  * Debugger is active!
+2025-04-20 01:02:53,313 - werkzeug - INFO -  * Debugger PIN: 129-502-399
+2025-04-20 01:02:54,282 - werkzeug - INFO -  * Detected change in 'C:\\Users\\suraj_ghosh\\Desktop\\price_comparison_project\\scrapers\\flipkart_scraper.py', reloading
+2025-04-20 01:02:54,772 - werkzeug - INFO -  * Restarting with stat
+2025-04-20 01:02:57,941 - __main__ - INFO - Starting Flask application on http://127.0.0.1:5000
+2025-04-20 01:02:57,951 - werkzeug - WARNING -  * Debugger is active!
+2025-04-20 01:02:57,955 - werkzeug - INFO -  * Debugger PIN: 129-502-399
+2025-04-20 01:03:09,286 - werkzeug - INFO -  * Detected change in 'C:\\Users\\suraj_ghosh\\Desktop\\price_comparison_project\\app.py', reloading
+2025-04-20 01:03:09,786 - werkzeug - INFO -  * Restarting with stat
+2025-04-20 01:03:12,785 - __main__ - INFO - Starting Flask application on http://127.0.0.1:5000
+2025-04-20 01:03:12,793 - werkzeug - WARNING -  * Debugger is active!
+2025-04-20 01:03:12,798 - werkzeug - INFO -  * Debugger PIN: 129-502-399
