@@ -124,4 +124,4 @@ Feel free to fork the repo, open issues, or submit pull requests to improve the 
 
 ## 📬 Contact
 
-For any questions or suggestions, reach out at **your.email@example.com**
+For any questions or suggestions, reach out at **surajghosh2724@gmail.com**
