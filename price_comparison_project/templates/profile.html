@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - PriceWizard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>My Profile</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    Account Information
+                </div>
+                <div class="card-body">
+                    <p><strong>Username:</strong> {{ current_user.username }}</p>
+                    <p><strong>Email:</strong> {{ current_user.email }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    Saved Searches
+                </div>
+                <div class="card-body">
+                    {% if saved_searches %}
+                        <ul class="list-group">
+                            {% for search in saved_searches %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <a href="{{ url_for('search') }}" onclick="event.preventDefault(); document.getElementById('search-form-{{ loop.index }}').submit();">{{ search.query }}</a>
+                                    <form id="search-form-{{ loop.index }}" action="{{ url_for('search') }}" method="post" style="display: none;">
+                                        <input type="hidden" name="query" value="{{ search.query }}">
+                                    </form>
+                                    <span class="badge bg-primary rounded-pill">{{ search.date }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">You don't have any saved searches yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    Price Alerts
+                </div>
+                <div class="card-body">
+                    {% if price_alerts %}
+                        <ul class="list-group">
+                            {% for alert in price_alerts %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6>{{ alert.product_name }}</h6>
+                                        <p class="mb-0">Target: ₹{{ alert.target_price }} | Platform: {{ alert.platform }}</p>
+                                    </div>
+                                    <span class="badge {% if alert.status == 'Active' %}bg-success{% else %}bg-warning{% endif %} rounded-pill">{{ alert.status }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">You don't have any price alerts set up.</p>
+                    {% endif %}
+                    
+                    <hr>
+                    <h5>Create New Price Alert</h5>
+                    <form action="{{ url_for('create_alert') }}" method="post">
+                        <div class="mb-3">
+                            <label for="product" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="product" name="product" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="target_price" class="form-label">Target Price</label>
+                            <input type="number" class="form-control" id="target_price" name="target_price" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="platform" class="form-label">Platform</label>
+                            <select class="form-control" id="platform" name="platform" required>
+                                <option value="amazon">Amazon</option>
+                                <option value="flipkart">Flipkart</option>
+                                <option value="alibaba">Alibaba</option>
+                                <option value="croma">Croma</option>
+                                <option value="myntra">Myntra</option>
+                                <option value="ajio">Ajio</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Alert</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

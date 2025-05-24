@@ -3,195 +3,1664 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Results - {{ data.query|default('Search') }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <title>Price Comparison Results - {{ data.query }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Toast notification style */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 123, 255, 0.9);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1050;
+            animation: fadeIn 0.3s, fadeOut 0.3s 2.7s;
+            max-width: 350px;
+        }
+        
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+        
+        @keyframes fadeOut {
+            from {opacity: 1;}
+            to {opacity: 0;}
+        }
+        
+        /* Platform badges */
+        .badge-amazon {
+            background-color: #ff9900;
+            color: #000;
+        }
+        
+        .badge-flipkart {
+            background-color: #2874f0;
+            color: #fff;
+        }
+        
+        .badge-alibaba {
+            background-color: #FF6A00;
+            color: #fff;
+        }
+        
+        .badge-croma {
+            background-color: #119744;
+            color: #fff;
+        }
+        
+        
+        /* Improved table styles */
+        .product-table img {
+            transition: transform 0.3s ease;
+        }
+        
+        .product-table img:hover {
+            transform: scale(1.5);
+        }
+        
+        /* Price comparison indicator */
+        .price-indicator {
+            font-size: 0.8rem;
+            padding: 2px 5px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+        
+        /* Tab styling */
+        .nav-tabs .nav-link {
+            position: relative;
+        }
+        
+        .nav-tabs .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #007bff;
+        }
+        
+        /* Platform specific colors for tabs */
+        #amazon-tab.active {
+            color: #ff9900;
+            font-weight: bold;
+        }
+        
+        #flipkart-tab.active {
+            color: #2874f0;
+            font-weight: bold;
+        }
+        
+        #alibaba-tab.active {
+            color: #FF6A00;
+            font-weight: bold;
+        }
+        
+        #croma-tab.active {
+            color: #119744;
+            font-weight: bold;
+        }
+        
+        
+        /* Filter controls */
+        .filter-controls {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-badge {
+            display: inline-block;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .filter-badge:hover {
+            transform: translateY(-2px);
+        }
+        
+        .filter-badge.active {
+            box-shadow: 0 0 0 2px #007bff;
+        }
+        
+        /* Highlight for product type */
+        .product-type-highlight {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin-left: 5px;
+            font-size: 0.8rem;
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        
+        /* Best time to buy section */
+        .recommendation-card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        
+        .recommendation-header {
+            padding: 15px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .recommendation-body {
+            padding: 20px;
+        }
+        
+        .confidence-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .price-stat-card {
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .price-stat-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .price-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .price-stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        /* Price history section enhancements */
+        .price-history-container {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .platform-legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        
+        .platform-legend-item {
+            display: flex;
+            align-items: center;
+            margin: 0 10px 10px 0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .platform-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="row mt-4 mb-4">
-            <div class="col-12">
-                <a href="/" class="btn btn-outline-primary mb-3">
-                    New Search
-                </a>
-                <h2>Results for: {{ data.query|default('Your search') }}</h2>
-            </div>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">PriceWizard</a>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard">Dashboard</a>
+                </li>
+            </ul>
         </div>
-        
-        <!-- Best Deal Section -->
-        <div class="row mb-4">
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
             <div class="col-12">
-                <div class="card shadow border-success">
-                    <div class="card-header bg-success text-white">
-                        <h3 class="mb-0">Best Deal Found</h3>
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4>Search Results for "{{ data.query }}"</h4>
+                        <p class="mb-0">Search time: {{ data.search_time }}</p>
                     </div>
                     <div class="card-body">
-                        {% if data.best_deal and data.best_deal.product %}
-                            <h4>{{ data.best_deal.product.name|default('Product') }}</h4>
-                            <p class="fs-2 fw-bold text-success">₹{{ data.best_deal.price|default('N/A') }}</p>
-                            <p class="mb-1">Platform: {{ data.best_deal.platform|default('Unknown')|title }}</p>
-                            {% if data.best_deal.product.rating %}
-                                <p class="mb-1">Rating: {{ data.best_deal.product.rating }} ⭐</p>
+                        <div class="alert alert-info">
+                            Search completed in {{ data.execution_time }} seconds.
+                            {% if data.query_info and data.query_info.product_type %}
+                                <span class="product-type-highlight">
+                                    Product Type: {{ data.query_info.product_type|title }}
+                                    {% if data.query_info.brand %}
+                                        | Brand: {{ data.query_info.brand|title }}
+                                    {% endif %}
+                                </span>
                             {% endif %}
-                            {% if data.best_deal.product.url %}
-                                <a href="{{ data.best_deal.product.url }}" target="_blank" class="btn btn-primary mt-2">
-                                    View on {{ data.best_deal.platform|default('Platform')|title }}
-                                </a>
+                        </div>
+                        <div class="alert alert-success">
+                            <h5>Best Deal Found:</h5>
+                            {% if data.best_deal.product %}
+                                <p><strong>{{ data.best_deal.product.name }}</strong> on 
+                                <span class="badge badge-{{ data.best_deal.platform }}">
+                                    {{ data.best_deal.platform|title }}
+                                </span></p>
+                                <p>Price: ₹{{ data.best_deal.price }}</p>
+                                {% if data.best_deal.product.url %}
+                                    <a href="{{ data.best_deal.product.url }}" target="_blank" 
+                                       class="btn btn-primary product-link" 
+                                       data-platform="{{ data.best_deal.platform }}"
+                                       data-product="{{ data.best_deal.product.name }}">
+                                       View Product
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <p>No deals found.</p>
                             {% endif %}
-                        {% else %}
-                            <p>No products found matching your query.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Price History and Buying Recommendation Section -->
+        {% if data.price_history %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4><i class="fas fa-chart-line mr-2"></i> Price History & Buying Recommendation</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Price History Chart - Expanded to full width -->
+                            <div class="col-12 mb-4">
+                                <div class="price-history-container">
+                                    <h5 class="mb-3"><i class="fas fa-history mr-2"></i> Price History Comparison</h5>
+                                    
+                                    <!-- Platform Legend -->
+                                    <div class="platform-legend">
+                                        {% if data.products.amazon %}
+                                        <div class="platform-legend-item">
+                                            <div class="platform-color" style="background-color: rgba(255, 153, 0, 1);"></div>
+                                            <span>Amazon</span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if data.products.flipkart %}
+                                        <div class="platform-legend-item">
+                                            <div class="platform-color" style="background-color: rgba(40, 116, 240, 1);"></div>
+                                            <span>Flipkart</span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if data.products.alibaba %}
+                                        <div class="platform-legend-item">
+                                            <div class="platform-color" style="background-color: rgba(255, 106, 0, 1);"></div>
+                                            <span>Alibaba</span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if data.products.croma %}
+                                        <div class="platform-legend-item">
+                                            <div class="platform-color" style="background-color: rgba(17, 151, 68, 1);"></div>
+                                            <span>Croma</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="chart-container">
+                                        <canvas id="priceHistoryChart"></canvas>
+                                    </div>
+                                    
+                                    <!-- Time Range Selector -->
+                                    <div class="d-flex justify-content-center mb-3">
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-outline-primary active" data-range="all">All Time</button>
+                                            <button type="button" class="btn btn-outline-primary" data-range="month">Last Month</button>
+                                            <button type="button" class="btn btn-outline-primary" data-range="week">Last Week</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Price Trends and Stats -->
+                            <div class="col-md-5">
+                                <h5 class="mb-3"><i class="fas fa-analytics mr-2"></i> Price Analysis</h5>
+                                <div class="row">
+                                    <!-- Current Price -->
+                                    <div class="col-6 mb-3">
+                                        <div class="price-stat-card bg-light">
+                                            <div class="price-stat-label">Current Price</div>
+                                            <div class="price-stat-value text-primary">
+                                                ₹{{ data.best_deal.price }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Average Price -->
+                                    <div class="col-6 mb-3">
+                                        <div class="price-stat-card bg-light">
+                                            <div class="price-stat-label">Average Price</div>
+                                            <div class="price-stat-value text-info">
+                                                {% if data.price_history.buy_recommendation and data.price_history.buy_recommendation.price_stats %}
+                                                    ₹{{ data.price_history.buy_recommendation.price_stats.average|round(2) }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Lowest Price -->
+                                    <div class="col-6 mb-3">
+                                        <div class="price-stat-card bg-light">
+                                            <div class="price-stat-label">Lowest Ever</div>
+                                            <div class="price-stat-value text-success">
+                                                {% if data.price_history.trends and data.price_history.trends.lowest_ever %}
+                                                    ₹{{ data.price_history.trends.lowest_ever }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Highest Price -->
+                                    <div class="col-6 mb-3">
+                                        <div class="price-stat-card bg-light">
+                                            <div class="price-stat-label">Highest Ever</div>
+                                            <div class="price-stat-value text-danger">
+                                                {% if data.price_history.trends and data.price_history.trends.highest_ever %}
+                                                    ₹{{ data.price_history.trends.highest_ever }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="mb-3 mt-4"><i class="fas fa-percentage mr-2"></i> Price Trends</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <th>Last Week</th>
+                                                <td>
+                                                    {% if data.price_history.trends and data.price_history.trends.last_week is not none %}
+                                                        {% if data.price_history.trends.last_week > 0 %}
+                                                            <span class="text-danger"><i class="fas fa-arrow-up mr-1"></i> {{ "%.1f"|format(data.price_history.trends.last_week) }}%</span>
+                                                        {% elif data.price_history.trends.last_week < 0 %}
+                                                            <span class="text-success"><i class="fas fa-arrow-down mr-1"></i> {{ "%.1f"|format(data.price_history.trends.last_week|abs) }}%</span>
+                                                        {% else %}
+                                                            <span class="text-muted"><i class="fas fa-equals mr-1"></i> No change</span>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <span class="text-muted">Not enough data</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Last Month</th>
+                                                <td>
+                                                    {% if data.price_history.trends and data.price_history.trends.last_month is not none %}
+                                                        {% if data.price_history.trends.last_month > 0 %}
+                                                            <span class="text-danger"><i class="fas fa-arrow-up mr-1"></i> {{ "%.1f"|format(data.price_history.trends.last_month) }}%</span>
+                                                        {% elif data.price_history.trends.last_month < 0 %}
+                                                            <span class="text-success"><i class="fas fa-arrow-down mr-1"></i> {{ "%.1f"|format(data.price_history.trends.last_month|abs) }}%</span>
+                                                        {% else %}
+                                                            <span class="text-muted"><i class="fas fa-equals mr-1"></i> No change</span>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <span class="text-muted">Not enough data</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Overall Trend</th>
+                                                <td>
+                                                    {% if data.price_history.trends and data.price_history.trends.overall is not none %}
+                                                        {% if data.price_history.trends.overall > 0 %}
+                                                            <span class="text-danger"><i class="fas fa-arrow-up mr-1"></i> {{ "%.1f"|format(data.price_history.trends.overall) }}%</span>
+                                                        {% elif data.price_history.trends.overall < 0 %}
+                                                            <span class="text-success"><i class="fas fa-arrow-down mr-1"></i> {{ "%.1f"|format(data.price_history.trends.overall|abs) }}%</span>
+                                                        {% else %}
+                                                            <span class="text-muted"><i class="fas fa-equals mr-1"></i> No change</span>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <span class="text-muted">Not enough data</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Price Volatility</th>
+                                                <td>
+                                                    {% if data.price_history.buy_recommendation and data.price_history.buy_recommendation.price_stats and data.price_history.buy_recommendation.price_stats.volatility is defined %}
+                                                        {% set volatility = data.price_history.buy_recommendation.price_stats.volatility %}
+                                                        {% if volatility > 15 %}
+                                                            <span class="text-danger"><i class="fas fa-exclamation-triangle mr-1"></i> High ({{ volatility }}%)</span>
+                                                        {% elif volatility > 5 %}
+                                                            <span class="text-warning"><i class="fas fa-exclamation-circle mr-1"></i> Medium ({{ volatility }}%)</span>
+                                                        {% else %}
+                                                            <span class="text-success"><i class="fas fa-check-circle mr-1"></i> Low ({{ volatility }}%)</span>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <span class="text-muted">Not available</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Best Time to Buy Recommendation -->
+                            <div class="col-md-7">
+                                <h5 class="mb-3"><i class="fas fa-shopping-cart mr-2"></i> Should You Buy Now?</h5>
+                                <div class="recommendation-card">
+                                    <div class="recommendation-header 
+                                        {% if data.price_history.buy_recommendation and data.price_history.buy_recommendation.recommendation == 'Buy now' %}
+                                            bg-success
+                                        {% elif data.price_history.buy_recommendation and (data.price_history.buy_recommendation.recommendation == 'Wait for further drop' or data.price_history.buy_recommendation.recommendation == 'Consider waiting') %}
+                                            bg-warning
+                                        {% elif data.price_history.buy_recommendation and data.price_history.buy_recommendation.recommendation == 'Insufficient data' %}
+                                            bg-secondary
+                                        {% else %}
+                                            bg-info
+                                        {% endif %}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h4 class="mb-0">
+                                                {% if data.price_history.buy_recommendation and data.price_history.buy_recommendation.recommendation == 'Buy now' %}
+                                                    <i class="fas fa-thumbs-up mr-2"></i>
+                                                {% elif data.price_history.buy_recommendation and (data.price_history.buy_recommendation.recommendation == 'Wait for further drop' or data.price_history.buy_recommendation.recommendation == 'Consider waiting') %}
+                                                    <i class="fas fa-clock mr-2"></i>
+                                                {% elif data.price_history.buy_recommendation and data.price_history.buy_recommendation.recommendation == 'Insufficient data' %}
+                                                    <i class="fas fa-question-circle mr-2"></i>
+                                                {% else %}
+                                                    <i class="fas fa-info-circle mr-2"></i>
+                                                {% endif %}
+                                                {{ data.price_history.buy_recommendation.recommendation if data.price_history.buy_recommendation else 'No recommendation available' }}
+                                            </h4>
+                                            <span class="confidence-badge 
+                                                {% if data.price_history.buy_recommendation and data.price_history.buy_recommendation.confidence == 'high' %}
+                                                    bg-white text-success
+                                                {% elif data.price_history.buy_recommendation and data.price_history.buy_recommendation.confidence == 'medium' %}
+                                                    bg-white text-info
+                                                {% else %}
+                                                    bg-white text-secondary
+                                                {% endif %}">
+                                                {{ data.price_history.buy_recommendation.confidence|title if data.price_history.buy_recommendation and data.price_history.buy_recommendation.confidence else 'Low' }} Confidence
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="recommendation-body">
+                                        <div class="mb-4">
+                                            <p class="lead">{{ data.price_history.buy_recommendation.message if data.price_history.buy_recommendation else 'No recommendation message available' }}</p>
+                                            
+                                            {% if data.price_history.buy_recommendation and data.price_history.buy_recommendation.best_time %}
+                                            <div class="alert alert-info">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="mr-3">
+                                                        <i class="fas fa-calendar-alt fa-2x"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-1">Best Time to Buy:</h6>
+                                                        <p class="mb-0"><strong>{{ data.price_history.buy_recommendation.best_time }}</strong></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <div class="card h-100">
+                                                    <div class="card-header bg-light">
+                                                        <h6 class="mb-0">Current vs. Historical</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        {% if data.price_history.buy_recommendation and data.price_history.buy_recommendation.price_stats %}
+                                                            {% set current = data.price_history.buy_recommendation.price_stats.current %}
+                                                            {% set lowest = data.price_history.buy_recommendation.price_stats.lowest %}
+                                                            {% set average = data.price_history.buy_recommendation.price_stats.average %}
+                                                            
+                                                            {% if current is defined and lowest is defined and current > lowest %}
+                                                                <p>
+                                                                    <i class="fas fa-arrow-circle-up text-danger mr-1"></i>
+                                                                    Current price is <strong>{{ ((current - lowest) / lowest * 100)|round(1) }}%</strong> above the lowest recorded price.
+                                                                </p>
+                                                            {% elif current is defined and lowest is defined and current == lowest %}
+                                                                <p>
+                                                                    <i class="fas fa-check-circle text-success mr-1"></i>
+                                                                    Current price matches the lowest recorded price!
+                                                                </p>
+                                                            {% endif %}
+                                                            
+                                                            {% if current is defined and average is defined %}
+                                                                {% if current > average %}
+                                                                    <p>
+                                                                        <i class="fas fa-arrow-circle-up text-danger mr-1"></i>
+                                                                        Current price is <strong>{{ ((current - average) / average * 100)|round(1) }}%</strong> above average.
+                                                                    </p>
+                                                                {% elif current < average %}
+                                                                    <p>
+                                                                        <i class="fas fa-arrow-circle-down text-success mr-1"></i>
+                                                                        Current price is <strong>{{ ((average - current) / average * 100)|round(1) }}%</strong> below average.
+                                                                    </p>
+                                                                {% else %}
+                                                                    <p>
+                                                                        <i class="fas fa-equals text-info mr-1"></i>
+                                                                        Current price equals the average price.
+                                                                    </p>
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        {% else %}
+                                                            <p class="text-muted">No comparative data available</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="card h-100">
+                                                    <div class="card-header bg-light">
+                                                        <h6 class="mb-0">Platform Comparison</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        {% if data.products and data.products|length > 1 %}
+                                                            {% set platforms = [] %}
+                                                            {% set prices = [] %}
+                                                            
+                                                            {% for platform, products in data.products.items() %}
+                                                                {% if products and products|length > 0 %}
+                                                                    {% set platforms = platforms + [platform] %}
+                                                                    {% set prices = prices + [products[0].price|float] %}
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                            
+                                                            {% if platforms|length > 1 %}
+                                                                {% set min_price = prices|min %}
+                                                                {% set max_price = prices|max %}
+                                                                {% set price_diff = max_price - min_price %}
+                                                                
+                                                                {% if price_diff > 0 and min_price > 0 %}
+                                                                    <p>
+                                                                        <i class="fas fa-balance-scale mr-1"></i>
+                                                                        Price difference across platforms: <strong>{{ (price_diff / min_price * 100)|round(1) }}%</strong>
+                                                                    </p>
+                                                                    
+                                                                    <p>
+                                                                        <i class="fas fa-store mr-1"></i>
+                                                                        Cheapest on: 
+                                                                        <span class="badge badge-{{ platforms[prices.index(min_price)] }}">
+                                                                            {{ platforms[prices.index(min_price)]|title }}
+                                                                        </span>
+                                                                    </p>
+                                                                {% else %}
+                                                                    <p>
+                                                                        <i class="fas fa-equals mr-1"></i>
+                                                                        Similar pricing across all platforms.
+                                                                    </p>
+                                                                {% endif %}
+                                                            {% else %}
+                                                                <p class="text-muted">Product available on only one platform</p>
+                                                            {% endif %}
+                                                        {% else %}
+                                                            <p class="text-muted">No platform comparison available</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Action Buttons -->
+                                        <div class="d-flex justify-content-between mt-4">
+                                            <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#setPriceAlertModal">
+                                                <i class="fas fa-bell mr-1"></i> Set Price Alert
+                                            </button>
+                                            
+                                            {% if data.best_deal.product and data.best_deal.product.url %}
+                                                <a href="{{ data.best_deal.product.url }}" target="_blank" class="btn btn-primary">
+                                                    <i class="fas fa-shopping-cart mr-1"></i> View Best Deal
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Price Points -->
+                        {% if data.price_history.history and data.price_history.history|length > 0 %}
+                        <div class="mt-4">
+                            <h5><i class="fas fa-list-ul mr-2"></i> Recent Price Points</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Product</th>
+                                            <th>Platform</th>
+                                            <th>Price</th>
+                                            <th>Change</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in data.price_history.history %}
+                                        <tr>
+                                            <td>{{ item.timestamp }}</td>
+                                            <td>{{ item.product }}</td>
+                                            <td>
+                                                <span class="badge badge-{{ item.platform|lower }}">
+                                                    {{ item.platform }}
+                                                </span>
+                                            </td>
+                                            <td>₹{{ item.price }}</td>
+                                            <td>
+                                                {% if loop.index < data.price_history.history|length %}
+                                                    {% set prev_price = data.price_history.history[loop.index].price|float %}
+                                                    {% set curr_price = item.price|float %}
+                                                    {% if curr_price > prev_price %}
+                                                        <span class="text-danger">
+                                                            <i class="fas fa-arrow-up"></i> 
+                                                            {{ ((curr_price - prev_price) / prev_price * 100)|round(1) }}%
+                                                        </span>
+                                                    {% elif curr_price < prev_price %}
+                                                        <span class="text-success">
+                                                            <i class="fas fa-arrow-down"></i> 
+                                                            {{ ((prev_price - curr_price) / prev_price * 100)|round(1) }}%
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="text-muted">No change</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
-        
+        {% endif %}
+
         <!-- Price Forecast Section -->
         {% if data.price_forecast %}
-        <div class="row mb-4">
+        <div class="row">
             <div class="col-12">
-                <div class="card shadow">
+                <div class="card mb-4">
                     <div class="card-header bg-info text-white">
-                        <h3 class="mb-0">Price Forecast</h3>
+                        <h4>Price Forecast Analysis</h4>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-info">
-                            <strong>Best time to buy:</strong> {{ data.price_forecast.best_time.best_date|default('N/A') }} 
-                            (Predicted price: ₹{{ data.price_forecast.best_time.predicted_price|default('N/A') }})
-                        </div>
-                        
-                        <div class="text-center mt-3">
-                            {% if data.price_forecast.forecast_plot %}
-                                <img src="data:image/png;base64,{{ data.price_forecast.forecast_plot }}" 
-                                     alt="Price Forecast" class="img-fluid">
-                            {% else %}
-                                <p>No forecast plot available</p>
-                            {% endif %}
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5>Price Trend Forecast</h5>
+                                <img src="data:image/png;base64,{{ data.price_forecast.forecast_plot }}" class="img-fluid" alt="Price Forecast">
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Best Time to Buy</h5>
+                                        <p><strong>Date:</strong> {{ data.price_forecast.best_time.best_date }}</p>
+                                        <p><strong>Predicted Price:</strong> ₹{{ data.price_forecast.best_time.predicted_price }}</p>
+                                        {% if data.price_forecast.best_time.price_drop_pct %}
+                                            <p><strong>Expected Price Drop:</strong> {{ data.price_forecast.best_time.price_drop_pct }}%</p>
+                                        {% endif %}
+                                        <div class="alert alert-warning">
+                                            <small>Based on historical price trends and ML forecasting</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         {% endif %}
-        
+
         <!-- Platform Reliability Section -->
-        <div class="row mb-4">
+        <div class="row">
             <div class="col-12">
-                <div class="card shadow">
-                    <div class="card-header bg-warning text-white">
-                        <h3 class="mb-0">Platform Reliability Analysis</h3>
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h4>Platform Reliability Analysis</h4>
                     </div>
                     <div class="card-body">
-                        <div class="alert alert-success">
-                            <strong>Most Reliable Platform:</strong> 
-                            {{ data.platform_reliability.most_reliable_platform|default('N/A')|title }}
-                            (Reliability Score: {{ data.platform_reliability.reliability_score|default('0') }}/100)
-                        </div>
-                        
                         <div class="row">
-                            {% if data.platform_reliability and data.platform_reliability.platform_scores %}
+                            <div class="col-md-5">
+                                <h5>Most Reliable Platform</h5>
+                                <div class="alert alert-success">
+                                    <h3>
+                                        {{ data.platform_reliability.most_reliable_platform|title }}
+                                        <span class="badge badge-{{ data.platform_reliability.most_reliable_platform }}">
+                                            {{ data.platform_reliability.reliability_score }}/100
+                                        </span>
+                                    </h3>
+                                    <p>Based on sentiment analysis of user reviews and platform metrics</p>
+                                </div>
+                                
+                                <!-- Reliability Score Gauge -->
+                                <div class="text-center mt-4">
+                                    <canvas id="reliabilityGauge" width="200" height="100" data-score="{{ data.platform_reliability.reliability_score }}"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <h5>Platform Comparison</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Platform</th>
+                                                <th>Positive</th>
+                                                <th>Neutral</th>
+                                                <th>Negative</th>
+                                                <th>Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for platform, scores in data.platform_reliability.platform_scores.items() %}
+                                            <tr>
+                                                <td>
+                                                    <span class="badge badge-{{ platform }}">{{ platform|title }}</span>
+                                                </td>
+                                                <td>{{ scores.positive }}</td>
+                                                <td>{{ scores.neutral }}</td>
+                                                <td>{{ scores.negative }}</td>
+                                                <td>
+                                                    <div class="progress" style="height: 20px;">
+                                                        <div class="progress-bar bg-{{ 'success' if scores.reliability_score >= 70 else 'warning' if scores.reliability_score >= 50 else 'danger' }}" 
+                                                             role="progressbar" 
+                                                             style="width: {{ scores.reliability_score }}%" 
+                                                             aria-valuenow="{{ scores.reliability_score }}" 
+                                                             aria-valuemin="0" 
+                                                             aria-valuemax="100">
+                                                            {{ scores.reliability_score }}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Sentiment Visualization -->
                                 {% for platform, scores in data.platform_reliability.platform_scores.items() %}
-                                <div class="col-md-6 mb-3">
-                                    <div class="card">
-                                        <div class="card-header">
-                                            {{ platform|title }}
-                                        </div>
-                                        <div class="card-body">
-                                            <p>Reliability Score: {{ scores.reliability_score|default('0') }}/100</p>
-                                            <p>Reviews Analyzed: {{ scores.total_reviews|default('0') }}</p>
-                                            
-                                            {% if scores.total_reviews|default(0) > 0 %}
-                                                <div class="progress mb-2">
-                                                    <div class="progress-bar bg-success" role="progressbar" 
-                                                         style="width: {{ scores.positive_width|default(0) }}%">
-                                                        Positive ({{ scores.positive|default('0') }})
-                                                    </div>
-                                                </div>
-                                                <div class="progress mb-2">
-                                                    <div class="progress-bar bg-warning" role="progressbar" 
-                                                         style="width: {{ scores.neutral_width|default(0) }}%">
-                                                        Neutral ({{ scores.neutral|default('0') }})
-                                                    </div>
-                                                </div>
-                                                <div class="progress mb-2">
-                                                    <div class="progress-bar bg-danger" role="progressbar" 
-                                                         style="width: {{ scores.negative_width|default(0) }}%">
-                                                        Negative ({{ scores.negative|default('0') }})
-                                                    </div>
-                                                </div>
-                                            {% else %}
-                                                <p>No review data available</p>
-                                            {% endif %}
-                                        </div>
+                                <h6>
+                                    <span class="badge badge-{{ platform }}">{{ platform|title }}</span> 
+                                    Sentiment Distribution
+                                </h6>
+                                <div class="progress mb-3" style="height: 25px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ scores.positive_width }}%"
+                                         aria-valuenow="{{ scores.positive_width }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ scores.positive }} Positive
+                                    </div>
+                                    <div class="progress-bar bg-warning" role="progressbar" 
+                                         style="width: {{ scores.neutral_width }}%"
+                                         aria-valuenow="{{ scores.neutral_width }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ scores.neutral }} Neutral
+                                    </div>
+                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                         style="width: {{ scores.negative_width }}%"
+                                         aria-valuenow="{{ scores.negative_width }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ scores.negative }} Negative
                                     </div>
                                 </div>
                                 {% endfor %}
-                            {% else %}
-                                <div class="col-12">
-                                    <p>No platform reliability data available.</p>
-                                </div>
-                            {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- All Products Section -->
-        <div class="row mb-4">
+
+        <!-- SVM Analysis Section -->
+        {% if data.svm_analysis %}
+        <div class="row">
             <div class="col-12">
-                <div class="card shadow">
+                <div class="card mb-4">
                     <div class="card-header bg-secondary text-white">
-                        <h3 class="mb-0">All Products Found</h3>
+                        <h4>Advanced SVM Analysis</h4>
                     </div>
                     <div class="card-body">
-                        {% if data.products and data.products.items()|list|length > 0 %}
-                            <ul class="nav nav-tabs" id="platformTabs" role="tablist">
-                                {% for platform, products in data.products.items() %}
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link {% if loop.first %}active{% endif %}" 
-                                            id="{{ platform }}-tab" data-bs-toggle="tab" 
-                                            data-bs-target="#{{ platform }}" type="button" role="tab">
-                                        {{ platform|title }} ({{ products|length }})
-                                    </button>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                            
-                            <div class="tab-content mt-3" id="platformTabsContent">
-                                {% for platform, products in data.products.items() %}
-                                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
-                                     id="{{ platform }}" role="tabpanel">
-                                    {% if products %}
-                                        <div class="list-group">
-                                            {% for product in products %}
-                                            <a href="{{ product.url|default('#') }}" target="_blank" 
-                                               class="list-group-item list-group-item-action">
-                                                <div class="d-flex w-100 justify-content-between">
-                                                    <h5 class="mb-1">{{ product.name|default('Product') }}</h5>
-                                                    <strong class="text-success">₹{{ product.price|default('N/A') }}</strong>
-                                                </div>
-                                                {% if product.rating %}
-                                                    <p class="mb-1">Rating: {{ product.rating }} ⭐</p>
-                                                {% endif %}
-                                            </a>
-                                            {% endfor %}
-                                        </div>
-                                    {% else %}
-                                        <p>No products found on {{ platform|title }}.</p>
-                                    {% endif %}
-                                </div>
-                                {% endfor %}
+                        <p>{{ data.svm_analysis.message }}</p>
+                        {% if data.svm_analysis.trained %}
+                            <div class="alert alert-info">
+                                <p>The SVM model has analyzed platform reliability, price trends, and product ratings to provide enhanced recommendations.</p>
                             </div>
-                        {% else %}
-                            <p>No products found.</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
         </div>
+        {% endif %}
+
+        <!-- Product Comparison Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4>Product Comparison</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- New: Filter Controls -->
+                        <div class="filter-controls mb-4">
+                            <h5>Filter Products</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Product Type:</label>
+                                    <div class="mt-2">
+                                        <span class="badge badge-secondary filter-badge filter-type active" data-type="all">All</span>
+                                        {% if data.query_info and data.query_info.product_type %}
+                                            <span class="badge badge-primary filter-badge filter-type" data-type="{{ data.query_info.product_type }}">{{ data.query_info.product_type|title }}</span>
+                                        {% endif %}
+                                        <span class="badge badge-secondary filter-badge filter-type" data-type="phone">Phone</span>
+                                        <span class="badge badge-secondary filter-badge filter-type" data-type="laptop">Laptop</span>
+                                        <span class="badge badge-secondary filter-badge filter-type" data-type="tablet">Tablet</span>
+                                        <span class="badge badge-secondary filter-badge filter-type" data-type="watch">Watch</span>
+                                        <span class="badge badge-secondary filter-badge filter-type" data-type="headphone">Headphone</span>
+                                        <span class="badge badge-secondary filter-badge filter-type" data-type="tv">TV</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Hide Accessories:</label>
+                                    <div class="custom-control custom-switch mt-2">
+                                        <input type="checkbox" class="custom-control-input" id="hideAccessories" checked>
+                                        <label class="custom-control-label" for="hideAccessories">Hide cases, covers, and other accessories</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label>Sort By:</label>
+                                    <select class="form-control" id="sortProducts">
+                                        <option value="relevance">Relevance</option>
+                                        <option value="price-low">Price: Low to High</option>
+                                        <option value="price-high">Price: High to Low</option>
+                                        <option value="rating">Rating: High to Low</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Price Range:</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="number" class="form-control" id="minPrice" placeholder="Min">
+                                        <span class="mx-2">to</span>
+                                        <input type="number" class="form-control" id="maxPrice" placeholder="Max">
+                                        <button class="btn btn-sm btn-primary ml-2" id="applyPriceFilter">Apply</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <ul class="nav nav-tabs" id="platformTabs" role="tablist">
+                            {% for platform in data.products %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if loop.first %}active{% endif %}" 
+                                   id="{{ platform }}-tab" 
+                                   data-toggle="tab" 
+                                   href="#{{ platform }}" 
+                                   role="tab" 
+                                   aria-controls="{{ platform }}" 
+                                   aria-selected="{% if loop.first %}true{% else %}false{% endif %}">
+                                    <span class="badge badge-{{ platform }}">{{ platform|title }}</span>
+                                    <span class="badge badge-light product-count">{{ data.products[platform]|length }}</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="tab-content mt-3" id="platformTabsContent">
+                            {% for platform, products in data.products.items() %}
+                            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                                 id="{{ platform }}" 
+                                 role="tabpanel" 
+                                 aria-labelledby="{{ platform }}-tab">
+                                <div class="table-responsive">
+                                    <table class="table table-striped product-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Image</th>
+                                                <th>Product</th>
+                                                <th>Price</th>
+                                                <th>Rating</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for product in products %}
+                                            <tr class="product-row" 
+                                                data-name="{{ product.name|lower }}" 
+                                                data-price="{{ product.price|replace(',', '') }}"
+                                                data-rating="{{ product.rating|default('0')|replace('N/A', '0') }}"
+                                                data-relevance="{{ product.relevance_score|default(0) }}">
+                                                <td>
+                                                    {% if product.image_url %}
+                                                    <img src="{{ product.image_url }}" alt="{{ product.name }}" style="max-width: 80px; max-height: 80px;">
+                                                    {% else %}
+                                                    <div class="no-image">No Image</div>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ product.name }}</td>
+                                                <td>
+                                                    ₹{{ product.price }}
+                                                    {% if data.best_deal.price != 'N/A' and product.price|float > data.best_deal.price|float %}
+                                                        <span class="price-indicator bg-danger text-white">
+                                                            +{{ ((product.price|float - data.best_deal.price|float) / data.best_deal.price|float * 100)|round(1) }}%
+                                                        </span>
+                                                    {% elif data.best_deal.price != 'N/A' and product.price|float == data.best_deal.price|float %}
+                                                        <span class="price-indicator bg-success text-white">Best Price</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if product.rating %}
+                                                        <div class="d-flex align-items-center">
+                                                            {{ product.rating }}
+                                                            <div class="ml-2">
+                                                                {% set rating = product.rating|float %}
+                                                                {% for i in range(1, 6) %}
+                                                                    {% if i <= rating %}
+                                                                        <span class="text-warning">★</span>
+                                                                    {% elif i <= rating + 0.5 %}
+                                                                        <span class="text-warning">★</span>
+                                                                    {% else %}
+                                                                        <span class="text-muted">☆</span>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                    {% else %}
+                                                        <span class="text-muted">N/A</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if product.url %}
+                                                    <a href="{{ product.url }}" 
+                                                       target="_blank" 
+                                                       class="btn btn-sm btn-{{ platform }} product-link" 
+                                                       data-platform="{{ platform }}" 
+                                                       data-product="{{ product.name }}">
+                                                        View
+                                                    </a>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    <div class="no-results-message text-center p-4" style="display: none;">
+                                        <p class="text-muted">No products match your current filters.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <a href="/" class="btn btn-lg btn-outline-primary">New Search</a>
+                <a href="/dashboard" class="btn btn-lg btn-outline-success ml-2">View Dashboard</a>
+            </div>
+        </div>
     </div>
+
+    <!-- Price Alert Modal -->
+    <div class="modal fade" id="setPriceAlertModal" tabindex="-1" role="dialog" aria-labelledby="setPriceAlertModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="setPriceAlertModalLabel">Set Price Alert</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="/create-alert" method="post">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="product">Product</label>
+                            <input type="text" class="form-control" id="product" name="product" value="{{ data.best_deal.product.name if data.best_deal.product else '' }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="platform">Platform</label>
+                            <select class="form-control" id="platform" name="platform">
+                                <option value="{{ data.best_deal.platform }}">{{ data.best_deal.platform|title }}</option>
+                                {% for platform in data.products.keys() %}
+                                    {% if platform != data.best_deal.platform %}
+                                    <option value="{{ platform }}">{{ platform|title }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="target_price">Target Price (₹)</label>
+                            <input type="number" class="form-control" id="target_price" name="target_price" 
+                                   value="{{ (data.price_history.trends.lowest_ever * 0.95)|round|int if data.price_history and data.price_history.trends and data.price_history.trends.lowest_ever else (data.best_deal.price|float * 0.9)|round|int }}" 
+                                   min="1" step="1" required>
+                            <small class="form-text text-muted">You'll be notified when the price drops to or below this amount.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <small class="form-text text-muted">We'll send you an alert when the price drops.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Set Alert</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p>ML-Based Smart Price Comparison and Forecasting with Platform Reliability Analysis</p>
+            <p class="mb-0">© Team-16 SDP Project</p>
+        </div>
+    </footer>
+
+    <!-- Hidden div to store chart data -->
+<div id="chart-data" style="display: none;" 
+     data-history='{% if data.price_history and data.price_history.chart_data %}{{ data.price_history.chart_data|tojson }}{% else %}{}{% endif %}'
+     data-lowest-price='{% if data.price_history and data.price_history.trends and data.price_history.trends.lowest_ever %}{{ data.price_history.trends.lowest_ever }}{% else %}0{% endif %}'
+     data-avg-price='{% if data.price_history and data.price_history.buy_recommendation and data.price_history.buy_recommendation.price_stats and data.price_history.buy_recommendation.price_stats.average %}{{ data.price_history.buy_recommendation.price_stats.average }}{% else %}0{% endif %}'>
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Improved JavaScript to handle platform-specific links and filtering -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers to product links
+            const productLinks = document.querySelectorAll('.product-link');
+            
+            productLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const platform = this.getAttribute('data-platform');
+                    
+                    // Intercept links for platforms that need special handling
+                    if (['flipkart', 'alibaba'].includes(platform)) {
+                        e.preventDefault();
+                        
+                        const url = this.getAttribute('href');
+                        const productName = this.getAttribute('data-product') || 
+                                            this.closest('tr')?.querySelector('td:nth-child(2)')?.textContent ||
+                                            '{{ data.query }}';
+                        
+                        // Extract specific product details for better search
+                        let specificSearch = productName;
+                        
+                        // Extract specific model information for common products
+                        if (productName.toLowerCase().includes('iphone')) {
+                            // Extract iPhone model, storage capacity, and color
+                            const modelMatch = productName.match(/iPhone\s+(\d+\s*(?:Pro|Plus|Max|mini)?)/i);
+                            const storageMatch = productName.match(/(\d+)\s*GB/i);
+                            const colorMatch = productName.match(/(?:black|white|blue|red|green|purple|pink|yellow|gold|graphite|silver|pacific blue)/i);
+                            
+                            specificSearch = '';
+                            if (modelMatch) specificSearch += modelMatch[0];
+                            if (storageMatch) specificSearch += ' ' + storageMatch[0];
+                            if (colorMatch) specificSearch += ' ' + colorMatch[0];
+                        }
+                        
+                        // Create a specific product search URL based on platform
+                        const searchQuery = encodeURIComponent(specificSearch.trim() || productName.trim());
+                        let searchUrl;
+                        
+                        switch(platform) {
+                            case 'flipkart':
+                                searchUrl = `https://www.flipkart.com/search?q=${searchQuery}&otracker=search&marketplace=FLIPKART`;
+                                break;
+                            case 'alibaba':
+                                searchUrl = `https://www.alibaba.com/trade/search?fsb=y&IndexArea=product_en&CatId=&SearchText=${searchQuery}`;
+                                break;
+                            default:
+                                searchUrl = url;
+                        }
+                        
+                        // Show notification
+                        showNotification(`Opening ${platform.charAt(0).toUpperCase() + platform.slice(1)} product search`);
+                        
+                        // Open the search URL in a new tab
+                        window.open(searchUrl, '_blank');
+                    }
+                });
+            });
+            
+            // Function to show notification toast
+            function showNotification(message) {
+                const toast = document.createElement('div');
+                toast.className = 'toast-notification';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                // Remove the toast after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
+
+            // Product filtering functionality
+            const accessoryKeywords = [
+                'case', 'cover', 'screen protector', 'screen guard', 'charger', 'cable', 
+                'adapter', 'skin', 'stand', 'holder', 'mount', 'dock', 'pouch', 'bag',
+                'tempered glass', 'protective', 'shell', 'bumper', 'wallet', 'essentials'
+            ];
+
+            // Filter type badges
+            const filterTypeBadges = document.querySelectorAll('.filter-type');
+            let activeProductType = 'all';
+
+            filterTypeBadges.forEach(badge => {
+                badge.addEventListener('click', function() {
+                    // Remove active class from all badges
+                    filterTypeBadges.forEach(b => b.classList.remove('active'));
+                    
+                    // Add active class to clicked badge
+                    this.classList.add('active');
+                    
+                    // Set active product type
+                    activeProductType = this.getAttribute('data-type');
+                    
+                    // Apply filters
+                    applyFilters();
+                });
+            });
+
+            // Hide accessories checkbox
+            const hideAccessoriesCheckbox = document.getElementById('hideAccessories');
+            hideAccessoriesCheckbox.addEventListener('change', applyFilters);
+
+            // Sort dropdown
+            const sortDropdown = document.getElementById('sortProducts');
+            sortDropdown.addEventListener('change', applyFilters);
+
+            // Price filter
+            const applyPriceButton = document.getElementById('applyPriceFilter');
+            applyPriceButton.addEventListener('click', applyFilters);
+
+            // Function to apply all filters
+            function applyFilters() {
+                const hideAccessories = hideAccessoriesCheckbox.checked;
+                const sortBy = sortDropdown.value;
+                const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+                const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+
+                // Get all product rows across all tabs
+                const allProductRows = document.querySelectorAll('.product-row');
+                
+                // Track visible products count for each platform
+                const platformCounts = {};
+                
+                // Apply filters to each product row
+                allProductRows.forEach(row => {
+                    const productName = row.getAttribute('data-name').toLowerCase();
+                    const productPrice = parseFloat(row.getAttribute('data-price')) || 0;
+                    const platform = row.closest('.tab-pane').id;
+                    
+                    if (!platformCounts[platform]) {
+                        platformCounts[platform] = 0;
+                    }
+                    
+                    // Check if product matches the active type filter
+                    let matchesType = activeProductType === 'all';
+                    if (activeProductType !== 'all') {
+                        const typeKeywords = {
+                            'phone': ['phone', 'mobile', 'smartphone', 'iphone'],
+                            'laptop': ['laptop', 'notebook', 'macbook'],
+                            'tablet': ['tablet', 'ipad', 'tab'],
+                            'watch': ['watch', 'smartwatch'],
+                            'headphone': ['headphone', 'earphone', 'earbud', 'airpod'],
+                            'tv': ['tv', 'television']
+                        };
+                        
+                        const keywords = typeKeywords[activeProductType] || [];
+                        matchesType = keywords.some(keyword => productName.includes(keyword));
+                    }
+                    
+                    // Check if product is an accessory (if hiding accessories)
+                    let isAccessory = false;
+                    if (hideAccessories) {
+                        isAccessory = accessoryKeywords.some(keyword => productName.includes(keyword));
+                    }
+                    
+                    // Check price range
+                    const inPriceRange = productPrice >= minPrice && productPrice <= maxPrice;
+                    
+                    // Apply all filters
+                    if (matchesType && !isAccessory && inPriceRange) {
+                        row.style.display = '';
+                        platformCounts[platform]++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                // Update platform counts in tabs
+                for (const platform in platformCounts) {
+                    const countBadge = document.querySelector(`#${platform}-tab .product-count`);
+                    if (countBadge) {
+                        countBadge.textContent = platformCounts[platform];
+                    }
+                    
+                    // Show/hide "no results" message
+                    const noResultsMessage = document.querySelector(`#${platform} .no-results-message`);
+                    if (noResultsMessage) {
+                        noResultsMessage.style.display = platformCounts[platform] === 0 ? 'block' : 'none';
+                    }
+                }
+                
+                // Apply sorting
+                applySorting(sortBy);
+            }
+            
+            // Function to sort products
+            function applySorting(sortBy) {
+                // Get all tab panes
+                const tabPanes = document.querySelectorAll('.tab-pane');
+                
+                tabPanes.forEach(pane => {
+                    const tbody = pane.querySelector('tbody');
+                    if (!tbody) return;
+                    
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    
+                    // Sort rows based on selected criteria
+                    rows.sort((a, b) => {
+                        switch (sortBy) {
+                            case 'price-low':
+                                return (parseFloat(a.getAttribute('data-price')) || 0) - 
+                                       (parseFloat(b.getAttribute('data-price')) || 0);
+                            case 'price-high':
+                                return (parseFloat(b.getAttribute('data-price')) || 0) - 
+                                       (parseFloat(a.getAttribute('data-price')) || 0);
+                            case 'rating':
+                                return (parseFloat(b.getAttribute('data-rating')) || 0) - 
+                                       (parseFloat(a.getAttribute('data-rating')) || 0);
+                            case 'relevance':
+                            default:
+                                return (parseFloat(b.getAttribute('data-relevance')) || 0) - 
+                                       (parseFloat(a.getAttribute('data-relevance')) || 0);
+                        }
+                    });
+                    
+                    // Re-append rows in sorted order
+                    rows.forEach(row => tbody.appendChild(row));
+                });
+            }
+            
+            // Apply initial filters
+            applyFilters();
+            
+            // Time range selector for price history chart
+            const timeRangeButtons = document.querySelectorAll('[data-range]');
+            timeRangeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    timeRangeButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const range = this.getAttribute('data-range');
+                    updateChartTimeRange(range);
+                });
+            });
+            
+            function updateChartTimeRange(range) {
+                if (!window.priceHistoryChart) return;
+                
+                const chart = window.priceHistoryChart;
+                const originalData = JSON.parse(document.getElementById('chart-data').getAttribute('data-history'));
+                
+                if (!originalData || !originalData.labels) return;
+                
+                let startIndex = 0;
+                
+                if (range === 'week') {
+                    startIndex = Math.max(0, originalData.labels.length - 7);
+                } else if (range === 'month') {
+                    startIndex = Math.max(0, originalData.labels.length - 30);
+                }
+                
+                // Update labels and datasets
+                chart.data.labels = originalData.labels.slice(startIndex);
+                
+                chart.data.datasets.forEach((dataset, i) => {
+                    const platformName = dataset.label.toLowerCase();
+                    if (originalData[platformName]) {
+                        dataset.data = originalData[platformName].slice(startIndex);
+                    }
+                });
+                
+                chart.update();
+            }
+        });
+    </script>
+    // Replace the problematic JavaScript sections with these corrected versions
+
+// Enhanced Chart.js for Price History
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Render price history chart if data exists
+        if (document.getElementById('priceHistoryChart')) {
+            // Get data from the hidden div
+            var historyDataElement = document.getElementById('chart-data');
+            var historyData = {};
+            
+            if (historyDataElement) {
+                try {
+                    historyData = JSON.parse(historyDataElement.getAttribute('data-history') || '{}');
+                } catch (e) {
+                    console.error("Error parsing chart data:", e);
+                    historyData = {};
+                }
+            }
+            
+            if (historyData && historyData.labels && historyData.labels.length > 0) {
+                const ctx = document.getElementById('priceHistoryChart').getContext('2d');
+                
+                // Create datasets from available data
+                const datasets = [];
+                
+                // Define platform colors
+                const platformColors = {
+                    amazon: {
+                        border: 'rgba(255, 153, 0, 1)',
+                        background: 'rgba(255, 153, 0, 0.2)'
+                    },
+                    flipkart: {
+                        border: 'rgba(40, 116, 240, 1)',
+                        background: 'rgba(40, 116, 240, 0.2)'
+                    },
+                    alibaba: {
+                        border: 'rgba(255, 106, 0, 1)',
+                        background: 'rgba(255, 106, 0, 0.2)'
+                    },
+                    croma: {
+                        border: 'rgba(17, 151, 68, 1)',
+                        background: 'rgba(17, 151, 68, 0.2)'
+                    }
+                };
+                
+                // Add datasets for each platform
+                for (const platform in historyData) {
+                    if (platform !== 'labels' && 
+                        historyData[platform] && 
+                        Array.isArray(historyData[platform]) &&
+                        historyData[platform].some(price => price !== null) &&
+                        platformColors[platform]) {
+                        
+                        datasets.push({
+                            label: platform.charAt(0).toUpperCase() + platform.slice(1),
+                            data: historyData[platform],
+                            borderColor: platformColors[platform].border,
+                            backgroundColor: platformColors[platform].background,
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            borderWidth: 2
+                        });
+                    }
+                }
+                
+                // Create chart
+                window.priceHistoryChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: historyData.labels,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Price (₹)'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += '₹' + context.parsed.y;
+                                        }
+                                        return label;
+                                    }
+                                },
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleFont: {
+                                    size: 14
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                padding: 10,
+                                cornerRadius: 5
+                            },
+                            legend: {
+                                display: false,
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20
+                                }
+                            },
+                            title: {
+                                display: false,
+                                text: 'Price History Comparison'
+                            }
+                        }
+                    }
+                });
+                
+                // Get server-side data for annotations
+                // We'll use data attributes instead of Jinja template variables
+                const chartDataElement = document.getElementById('chart-data');
+                const lowestPrice = parseFloat(chartDataElement.getAttribute('data-lowest-price') || '0');
+                const avgPrice = parseFloat(chartDataElement.getAttribute('data-avg-price') || '0');
+                
+                // Add lowest price annotation if available
+                if (lowestPrice > 0) {
+                    const lowestPricePlugin = {
+                        id: 'lowestPriceLine',
+                        afterDraw: function(chart) {
+                            const ctx = chart.ctx;
+                            const yAxis = chart.scales.y;
+                            const yPosition = yAxis.getPixelForValue(lowestPrice);
+                            
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.moveTo(chart.chartArea.left, yPosition);
+                            ctx.lineTo(chart.chartArea.right, yPosition);
+                            ctx.lineWidth = 2;
+                            ctx.strokeStyle = 'rgba(75, 192, 192, 0.5)';
+                            ctx.setLineDash([6, 6]);
+                            ctx.stroke();
+                            
+                            // Add label
+                            ctx.fillStyle = 'rgba(75, 192, 192, 1)';
+                            ctx.fillText('Lowest: ₹' + lowestPrice, chart.chartArea.left + 10, yPosition - 5);
+                            ctx.restore();
+                        }
+                    };
+                    
+                    Chart.register(lowestPricePlugin);
+                }
+                
+                // Add average price annotation if available
+                if (avgPrice > 0) {
+                    const avgPricePlugin = {
+                        id: 'avgPriceLine',
+                        afterDraw: function(chart) {
+                            const ctx = chart.ctx;
+                            const yAxis = chart.scales.y;
+                            const yPosition = yAxis.getPixelForValue(avgPrice);
+                            
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.moveTo(chart.chartArea.left, yPosition);
+                            ctx.lineTo(chart.chartArea.right, yPosition);
+                            ctx.lineWidth = 2;
+                            ctx.strokeStyle = 'rgba(54, 162, 235, 0.5)';
+                            ctx.setLineDash([3, 3]);
+                            ctx.stroke();
+                            
+                            // Add label
+                            ctx.fillStyle = 'rgba(54, 162, 235, 1)';
+                            ctx.fillText('Avg: ₹' + avgPrice.toFixed(2), chart.chartArea.right - 100, yPosition - 5);
+                            ctx.restore();
+                        }
+                    };
+                    
+                    Chart.register(avgPricePlugin);
+                }
+            }
+        }
+        
+        // Create reliability gauge chart
+        if (document.getElementById('reliabilityGauge')) {
+            // Get the reliability score from the data attribute
+            const reliabilityGaugeElement = document.getElementById('reliabilityGauge');
+            const reliabilityScore = parseInt(reliabilityGaugeElement.getAttribute('data-score') || '0');
+            const ctx = reliabilityGaugeElement.getContext('2d');
+            
+            // Determine color based on score
+            let color;
+            if (reliabilityScore >= 80) {
+                color = 'rgba(40, 167, 69, 0.8)'; // Green
+            } else if (reliabilityScore >= 60) {
+                color = 'rgba(23, 162, 184, 0.8)'; // Blue
+            } else if (reliabilityScore >= 40) {
+                color = 'rgba(255, 193, 7, 0.8)'; // Yellow
+            } else {
+                color = 'rgba(220, 53, 69, 0.8)'; // Red
+            }
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [reliabilityScore, 100 - reliabilityScore],
+                        backgroundColor: [color, 'rgba(200, 200, 200, 0.2)'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    rotation: -90,
+                    circumference: 180,
+                    plugins: {
+                        tooltip: {
+                            enabled: false
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    animation: {
+                        animateRotate: true
+                    }
+                },
+                plugins: [{
+                    id: 'text',
+                    beforeDraw: function(chart) {
+                        const width = chart.width;
+                        const height = chart.height;
+                        const ctx = chart.ctx;
+                        
+                        ctx.restore();
+                        ctx.font = "bold 24px Arial";
+                        ctx.textBaseline = "middle";
+                        ctx.textAlign = "center";
+                        ctx.fillStyle = color;
+                        ctx.fillText(reliabilityScore + "%", width / 2, height - 20);
+                        
+                        ctx.font = "12px Arial";
+                        ctx.fillStyle = "#666";
+                        ctx.fillText("Reliability", width / 2, height - 45);
+                        ctx.save();
+                    }
+                }]
+            });
+        }
+    });
+</script>
 </body>
 </html>
